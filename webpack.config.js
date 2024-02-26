@@ -18,7 +18,7 @@ if(process.env.CODESPACE_NAME){
 
 module.exports = {
   entry: [
-    './src/js/index.js'
+    './src/index.jsx'
   ],
   output: {
     filename: 'bundle.js',
