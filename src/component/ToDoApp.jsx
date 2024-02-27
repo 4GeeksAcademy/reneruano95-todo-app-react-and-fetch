@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { InputArea } from "./InputArea";
 import { ListItem } from "./ListItem";
-import { ListGroup } from "react-bootstrap";
+import { Button, ListGroup } from "react-bootstrap";
+
+
+const url = 'https://playground.4geeks.com/apis/fake/todos/user/reneruano95'
 
 const ToDoApp = () => {
 	const [todos, setTodos] = useState([]);
 	const [input, setInput] = useState('');
 
 	useEffect(() => {
-		fetch('https://playground.4geeks.com/apis/fake/todos/user/denis9diaz', {
+		fetch(url, {
 			headers: {
 				'Content-Type': 'application/json',
 			},
@@ -20,7 +23,27 @@ const ToDoApp = () => {
 			})
 			.then(data => {
 				console.log(data);
-				return setTodos(data)
+				data.length > 0
+					? setTodos(data)
+					: fetch(url, {
+						method: 'POST',
+						body: JSON.stringify(todos),
+						headers: {
+							'Content-Type': 'application/json',
+						},
+					})
+						.then(resp => {
+							console.log(resp.ok)
+							console.log(resp.status)
+							return resp.json()
+						})
+						.then(data => {
+							console.log(data)
+							return setTodos(data)
+						})
+						.catch(error => {
+							console.log(error)
+						})
 			})
 			.catch(error => {
 				console.log(error);
@@ -29,36 +52,63 @@ const ToDoApp = () => {
 
 	const addTask = () => {
 		if (!input) return;
-		const newTodos = [{'id': Date.now(), 'label': input, 'done': false }, ...todos];
-		setTodos(newTodos);
-		setInput('');
+		const newTodos = [{ 'done': false, 'id': Date.now(), 'label': input, }, ...todos];
 
-		fetch('https://playground.4geeks.com/apis/fake/todos/user/denis9diaz', {
+		fetch(url, {
 			method: 'PUT',
-			body: JSON.stringify(todos),
+			body: JSON.stringify(newTodos),
 			headers: {
 				'Content-Type': 'application/json',
 			},
 		})
-			.then(resp => resp.json())
-			.then(data => setTodos(data))
+			.then(resp => {
+				return resp.json()
+			})
+			.then(data => {
+
+				setTodos(newTodos);
+				setInput('');
+				return console.log(data)
+			})
 			.catch(error => console.log(error));
 	};
 
 	const deleteTask = (id) => {
 		const newTodos = todos.filter(todo => todo.id !== id);
-		setTodos(newTodos);
-		fetch('https://playground.4geeks.com/apis/fake/todos/user/denis9diaz', {
+		fetch(url, {
 			method: 'PUT',
-			body: JSON.stringify(todos),
+			body: JSON.stringify(newTodos),
+			headers: {
+				'Content-Type': 'application/json',
+			},
+		})
+			.then(resp => {
+				return resp.json()
+			})
+			.then(data => {
+
+				setTodos(newTodos);
+				return console.log(data)
+			})
+			.catch(error => console.log(error));
+	};
+
+	const cleanAllTasks = () => {
+		fetch(url, {
+			method: 'DELETE',
 			headers: {
 				'Content-Type': 'application/json',
 			},
 		})
 			.then(resp => resp.json())
-			.then(data => setTodos(data))
+			.then(data => {
+				console.log(data)
+				setTodos([]);
+			})
 			.catch(error => console.log(error));
 	};
+
+	const remainingTasks = todos.length
 
 	return (
 		<div className="container d-flex flex-column justify-content-center align-items-center">
@@ -78,13 +128,16 @@ const ToDoApp = () => {
 						/>
 					))}
 				</ListGroup>
+				<div className="mt-3 d-flex justify-content-between">
+					<p className="mt-2 ps-3">{remainingTasks} item{remainingTasks > 1 && 's'} left</p>
+					<Button variant="outline-secondary" onClick={cleanAllTasks}>Clean all Tasks</Button>
+				</div>
 
-				<ListItem toDoItems={todos} onClick={() => deleteTask(id)} />
 			</div>
 
 			<p className="mt-4">
 				Made by{" "}
-				<a href="http://www.4geeksacademy.com">4Geeks Academy</a>, with
+				<a href="https://github.com/reneruano95">Rene Ruano</a>, with
 				love!
 			</p>
 		</div>
