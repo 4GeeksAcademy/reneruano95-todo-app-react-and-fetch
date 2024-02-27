@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { InputArea } from "./InputArea";
 import { ListItem } from "./ListItem";
+import { ListGroup } from "react-bootstrap";
 
 const ToDoApp = () => {
 	const [todos, setTodos] = useState([]);
@@ -15,8 +16,6 @@ const ToDoApp = () => {
 			.then(resp => {
 				console.log(resp.ok);
 				console.log(resp.status);
-				console.log(resp.text());
-				console.log(resp)
 				return resp.json();
 			})
 			.then(data => {
@@ -30,12 +29,13 @@ const ToDoApp = () => {
 
 	const addTask = () => {
 		if (!input) return;
-		const newTodos = [input, ...todos];
+		const newTodos = [{'id': Date.now(), 'label': input, 'done': false }, ...todos];
 		setTodos(newTodos);
 		setInput('');
+
 		fetch('https://playground.4geeks.com/apis/fake/todos/user/denis9diaz', {
 			method: 'PUT',
-			body: JSON.stringify(newTodos),
+			body: JSON.stringify(todos),
 			headers: {
 				'Content-Type': 'application/json',
 			},
@@ -45,12 +45,12 @@ const ToDoApp = () => {
 			.catch(error => console.log(error));
 	};
 
-	const deleteTask = () => {
-		const newTodos = todos.filter((item, index) => index);
+	const deleteTask = (id) => {
+		const newTodos = todos.filter(todo => todo.id !== id);
 		setTodos(newTodos);
 		fetch('https://playground.4geeks.com/apis/fake/todos/user/denis9diaz', {
 			method: 'PUT',
-			body: JSON.stringify(newTodos),
+			body: JSON.stringify(todos),
 			headers: {
 				'Content-Type': 'application/json',
 			},
@@ -69,7 +69,17 @@ const ToDoApp = () => {
 					onChange={(e) => setInput(e.target.value)}
 					onClick={addTask}
 				/>
-				<ListItem toDoItems={todos} onClick={deleteTask} />
+				<ListGroup>
+					{todos.map((todo) => (
+						<ListItem
+							key={todo.id}
+							toDoItem={todo.label}
+							onClick={() => deleteTask(todo.id)}
+						/>
+					))}
+				</ListGroup>
+
+				<ListItem toDoItems={todos} onClick={() => deleteTask(id)} />
 			</div>
 
 			<p className="mt-4">
